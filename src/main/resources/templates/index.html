@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coachly - Find Your Coach</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-background: var(--background);
+            --color-foreground: var(--foreground);
+            --color-card: var(--card);
+            --color-card-foreground: var(--card-foreground);
+            --color-popover: var(--popover);
+            --color-popover-foreground: var(--popover-foreground);
+            --color-primary: var(--primary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-secondary: var(--secondary);
+            --color-secondary-foreground: var(--secondary-foreground);
+            --color-muted: var(--muted);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-accent: var(--accent);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-destructive: var(--destructive);
+            --color-destructive-foreground: var(--destructive-foreground);
+            --color-border: var(--border);
+            --color-input: var(--input);
+            --color-input-background: var(--input-background);
+            --color-switch-background: var(--switch-background);
+            --color-ring: var(--ring);
+            
+            --radius-sm: calc(var(--radius) - 4px);
+            --radius-md: calc(var(--radius) - 2px);
+            --radius-lg: var(--radius);
+            --radius-xl: calc(var(--radius) + 4px);
+        }
+        @layer base {
+            :root {
+                --background: #09090B;
+                --foreground: #F8FAFC;
+                --card: #0F0F12;
+                --card-foreground: #F8FAFC;
+                --primary: #E11D48;
+                --primary-foreground: #FFFFFF;
+                --secondary: #3F3F46;
+                --secondary-foreground: #F8FAFC;
+                --muted: #18181B;
+                --muted-foreground: #A1A1AA;
+                --accent: #F43F5E;
+                --accent-foreground: #FFFFFF;
+                --destructive: #EF4444;
+                --destructive-foreground: #FFFFFF;
+                --border: #3F3F46;
+                --radius: 0.75rem;
+            }
+            body {
+                background-color: var(--background);
+                color: var(--foreground);
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen pb-20 md:pb-8">
+        
+        <!-- Navigation Bar -->
+        <nav class="border-b bg-card">
+            <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+                <a th:href="@{/}" class="flex items-center gap-2 font-semibold text-xl">
+                    <i data-lucide="dumbbell" class="h-6 w-6 text-primary"></i>
+                    Coachly
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- Show when logged in -->
+                    <a sec:authorize="hasAuthority('ROLE_ADMIN')" th:href="@{/admin}" class="text-sm font-medium text-destructive hover:text-red-700">Admin Panel</a>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/items/new}" class="text-sm font-medium hover:text-primary">Offer Coaching</a>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}" class="text-sm font-medium hover:text-primary">Dashboard</a>
+                    <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="inline">
+                        <button type="submit" class="text-sm font-medium hover:text-primary bg-transparent border-none cursor-pointer">Logout</button>
+                    </form>
+                    <!-- Show when NOT logged in -->
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="text-sm font-medium hover:text-primary">Sign In</a>
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/signup}" class="bg-primary text-primary-foreground hover:bg-accent px-4 py-2 rounded-md text-sm font-medium">Sign Up</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-b from-primary/5 to-transparent border-b">
+            <div class="container mx-auto px-4 py-12 md:py-16">
+                <div class="max-w-3xl mx-auto text-center space-y-6">
+                    <h1 class="text-3xl md:text-5xl font-medium">
+                        Find Your Coach, <span class="text-primary">Book Your Growth</span>
+                    </h1>
+                    <p class="text-muted-foreground text-lg">
+                        Discover personal trainers, wellness mentors, and specialist coaches ready to help you improve
+                    </p>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="bg-card rounded-xl shadow-lg border-2 border-border p-4 md:p-6 text-left">
+                        <form th:action="@{/search}" method="GET">
+                            <!-- Search row -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3">
+                                <div class="md:col-span-10 relative">
+                                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+                                    <input type="text" name="q" th:value="${searchQuery}" placeholder="What coaching are you looking for?"
+                                           class="w-full pl-10 pr-3 h-12 border-2 border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button type="submit" class="w-full h-12 bg-primary hover:bg-accent text-primary-foreground rounded-md flex items-center justify-center gap-2 transition-colors font-medium">
+                                        <i data-lucide="search" class="h-4 w-4"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Filter row -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
+                                <div class="relative">
+                                    <i data-lucide="tag" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"></i>
+                                    <select name="category"
+                                            class="w-full pl-10 pr-3 h-10 border-2 border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none">
+                                        <option value="" th:selected="${selectedCategory == null or selectedCategory == ''}">All Categories</option>
+                                        <option value="Fitness"      th:selected="${selectedCategory == 'Fitness'}">Fitness</option>
+                                        <option value="Strength"     th:selected="${selectedCategory == 'Strength'}">Strength</option>
+                                        <option value="Yoga"         th:selected="${selectedCategory == 'Yoga'}">Yoga</option>
+                                        <option value="Boxing"       th:selected="${selectedCategory == 'Boxing'}">Boxing</option>
+                                        <option value="Nutrition"    th:selected="${selectedCategory == 'Nutrition'}">Nutrition</option>
+                                        <option value="Running"      th:selected="${selectedCategory == 'Running'}">Running</option>
+                                        <option value="Career"       th:selected="${selectedCategory == 'Career'}">Career</option>
+                                        <option value="Other"        th:selected="${selectedCategory == 'Other'}">Other</option>
+                                    </select>
+                                </div>
+                                <div class="relative">
+                                    <i data-lucide="dollar-sign" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"></i>
+                                    <input type="number" name="maxPrice" th:value="${selectedMaxPrice}" min="0" step="1"
+                                           placeholder="Max price per session"
+                                           class="w-full pl-10 pr-3 h-10 border-2 border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="container mx-auto px-4 py-8 md:py-12">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-medium" th:text="${searchQuery != null} ? 'Search Results' : 'Available Coaches Near You'">Available Coaches Near You</h2>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        <span th:text="${itemCount}">0</span> services available
+                    </p>
+                </div>
+            </div>
+
+            <!-- Services Grid - Dynamic from DB -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                <a th:each="item : ${items}" th:href="@{/items/{id}(id=${item.id})}" class="group bg-card rounded-lg border-2 border-border overflow-hidden hover:border-primary/50 transition-colors block">
+                    <div class="aspect-square bg-muted relative overflow-hidden">
+                        <img th:src="${item.imageUrl}" th:alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute top-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
+                            $<span th:text="${#numbers.formatDecimal(item.pricePerDay, 0, 0)}">0</span>/session
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <h3 class="font-medium truncate" th:text="${item.name}">Service Name</h3>
+                        </div>
+                        <p class="text-sm text-muted-foreground flex items-center gap-1">
+                            <i data-lucide="map-pin" class="h-3.5 w-3.5"></i>
+                            <span th:text="${item.location}">Location</span>
+                        </p>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(items)}" class="text-center py-16">
+                <i data-lucide="search-x" class="h-16 w-16 text-muted-foreground mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium">No coaching services found</h3>
+                <p class="text-muted-foreground mt-2" th:if="${searchQuery != null}">Try a different coach, category, or price.</p>
+                <p class="text-muted-foreground mt-2" th:unless="${searchQuery != null}">Be the first to offer a coaching service!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+</body>
+</html>

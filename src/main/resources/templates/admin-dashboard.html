@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Coachly</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-background: var(--background);
+            --color-foreground: var(--foreground);
+            --color-card: var(--card);
+            --color-card-foreground: var(--card-foreground);
+            --color-primary: var(--primary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-muted: var(--muted);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-accent: var(--accent);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-destructive: var(--destructive);
+            --color-border: var(--border);
+            --radius-lg: var(--radius);
+        }
+        @layer base {
+            :root {
+                --background: #09090B;
+                --foreground: #F8FAFC;
+                --card: #0F0F12;
+                --card-foreground: #F8FAFC;
+                --primary: #E11D48;
+                --primary-foreground: #FFFFFF;
+                --muted: #18181B;
+                --muted-foreground: #A1A1AA;
+                --accent: #F43F5E;
+                --accent-foreground: #FFFFFF;
+                --destructive: #EF4444;
+                --border: #3F3F46;
+                --radius: 0.75rem;
+            }
+            body {
+                background-color: var(--background);
+                color: var(--foreground);
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-trigger.active { background-color: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    
+    <!-- Navigation Bar -->
+    <nav class="border-b bg-card">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <a th:href="@{/}" class="flex items-center gap-2 font-semibold text-xl">
+                <i data-lucide="dumbbell" class="h-6 w-6 text-primary"></i>
+                Coachly
+            </a>
+            <div class="flex items-center gap-4">
+                <a th:href="@{/admin}" class="text-sm font-medium text-destructive">Admin Panel</a>
+                <a th:href="@{/items/new}" class="text-sm font-medium hover:text-primary">Offer Coaching</a>
+                <a th:href="@{/dashboard}" class="text-sm font-medium hover:text-primary">Dashboard</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="text-sm font-medium hover:text-primary bg-transparent border-none cursor-pointer">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen py-8 pb-20 md:pb-8">
+        <div class="container mx-auto px-4">
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" class="mb-6 rounded-lg border border-accent/50 bg-accent/10 p-4 text-sm text-accent">
+                <span th:text="${successMessage}">Message</span>
+            </div>
+            <div th:if="${errorMessage}" class="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-medium text-destructive">Admin Control Panel</h1>
+                <p class="text-muted-foreground mt-2">
+                    Manage users, coaching services, and active bookings.
+                </p>
+            </div>
+
+            <!-- Main Content Tabs -->
+            <div class="space-y-6">
+                <!-- Tabs List -->
+                <div class="inline-flex h-12 w-full max-w-2xl items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid grid-cols-3">
+                    <button onclick="switchTab('users')" id="tab-users" class="tab-trigger active inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-base font-medium transition-all focus-visible:outline-none">
+                        Manage Users
+                    </button>
+                    <button onclick="switchTab('items')" id="tab-items" class="tab-trigger inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-base font-medium transition-all focus-visible:outline-none">
+                        Manage Services
+                    </button>
+                    <button onclick="switchTab('rentals')" id="tab-rentals" class="tab-trigger inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-base font-medium transition-all focus-visible:outline-none">
+                        Manage Bookings
+                    </button>
+                </div>
+
+                <!-- Users Tab Content -->
+                <div id="content-users" class="tab-content active space-y-4">
+                    <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">ID</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Name</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Email</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Role</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="u : ${users}" class="border-b border-border last:border-0 hover:bg-muted/50">
+                                    <td class="py-3 px-4" th:text="${u.id}">1</td>
+                                    <td class="py-3 px-4 font-medium" th:text="${u.fullName}">User Name</td>
+                                    <td class="py-3 px-4 text-muted-foreground" th:text="${u.email}">email@example.com</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                                              th:classappend="${u.role == 'ROLE_ADMIN'} ? 'bg-destructive/10 text-destructive border-transparent' : 'bg-accent/10 text-accent border-transparent'"
+                                              th:text="${u.role == 'ROLE_ADMIN' ? 'Admin' : 'User'}">Role</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="POST" class="inline"
+                                              onsubmit="return confirm('Deleting this user also deletes their services and bookings. Continue?')">
+                                            <button type="submit" class="text-destructive hover:underline text-sm font-medium">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Services Tab Content -->
+                <div id="content-items" class="tab-content space-y-4">
+                    <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">ID</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Service Name</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Category</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Coach</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${items}" class="border-b border-border last:border-0 hover:bg-muted/50">
+                                    <td class="py-3 px-4" th:text="${item.id}">1</td>
+                                    <td class="py-3 px-4 font-medium">
+                                        <a th:href="@{/items/{id}(id=${item.id})}" class="text-primary hover:underline" th:text="${item.name}">Service</a>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground" th:text="${item.category}">Category</td>
+                                    <td class="py-3 px-4 text-muted-foreground" th:text="${item.owner.email}">Coach Email</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <form th:action="@{/admin/items/{id}/delete(id=${item.id})}" method="POST" class="inline"
+                                              onsubmit="return confirm('Deleting this service removes all its bookings too. Continue?')">
+                                            <button type="submit" class="text-destructive hover:underline text-sm font-medium">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bookings Tab Content -->
+                <div id="content-rentals" class="tab-content space-y-4">
+                     <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">ID</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Service</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Client</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Dates</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground">Status</th>
+                                    <th class="py-3 px-4 font-medium text-muted-foreground text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="rental : ${rentals}" class="border-b border-border last:border-0 hover:bg-muted/50">
+                                    <td class="py-3 px-4" th:text="${rental.id}">1</td>
+                                    <td class="py-3 px-4 font-medium text-primary" th:text="${rental.item.name}">Service</td>
+                                    <td class="py-3 px-4 text-muted-foreground" th:text="${rental.borrower.email}">Client</td>
+                                    <td class="py-3 px-4 text-muted-foreground text-sm">
+                                        <span th:text="${rental.startDate}">Start</span> - <span th:text="${rental.endDate}">End</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                                              th:classappend="${rental.status.name() == 'ACTIVE'} ? 'bg-green-100 text-green-800 border-transparent' : (${rental.status.name() == 'CANCELLED'} ? 'bg-red-100 text-red-700 border-transparent' : 'bg-gray-100 text-gray-700 border-transparent')"
+                                              th:text="${rental.status}">Status</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <form th:action="@{/admin/rentals/{id}/delete(id=${rental.id})}" method="POST" class="inline"
+                                              onsubmit="return confirm('Delete this booking record?')">
+                                            <button type="submit" class="text-destructive hover:underline text-sm font-medium">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+
+      function switchTab(tabId) {
+          document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+          document.querySelectorAll('.tab-trigger').forEach(el => el.classList.remove('active'));
+          
+          document.getElementById('content-' + tabId).classList.add('active');
+          document.getElementById('tab-' + tabId).classList.add('active');
+      }
+    </script>
+</body>
+</html>

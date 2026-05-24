@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Coachly</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-background: var(--background);
+            --color-foreground: var(--foreground);
+            --color-card: var(--card);
+            --color-card-foreground: var(--card-foreground);
+            --color-primary: var(--primary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-muted: var(--muted);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-accent: var(--accent);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-destructive: var(--destructive);
+            --color-border: var(--border);
+            --radius-lg: var(--radius);
+        }
+        @layer base {
+            :root {
+                --background: #09090B;
+                --foreground: #F8FAFC;
+                --card: #0F0F12;
+                --card-foreground: #F8FAFC;
+                --primary: #E11D48;
+                --primary-foreground: #FFFFFF;
+                --muted: #18181B;
+                --muted-foreground: #A1A1AA;
+                --accent: #F43F5E;
+                --accent-foreground: #FFFFFF;
+                --destructive: #EF4444;
+                --border: #3F3F46;
+                --radius: 0.75rem;
+            }
+            body {
+                background-color: var(--background);
+                color: var(--foreground);
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-trigger.active { background-color: var(--background); color: var(--foreground); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    
+    <!-- Navigation Bar -->
+    <nav class="border-b bg-card">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <a th:href="@{/}" class="flex items-center gap-2 font-semibold text-xl">
+                <i data-lucide="dumbbell" class="h-6 w-6 text-primary"></i>
+                Coachly
+            </a>
+            <div class="flex items-center gap-4">
+                <a sec:authorize="hasAuthority('ROLE_ADMIN')" th:href="@{/admin}" class="text-sm font-medium text-destructive hover:text-red-700">Admin Panel</a>
+                <a th:href="@{/items/new}" class="text-sm font-medium hover:text-primary">Offer Coaching</a>
+                <a th:href="@{/dashboard}" class="text-sm font-medium text-primary">Dashboard</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="text-sm font-medium hover:text-primary bg-transparent border-none cursor-pointer">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen py-8 pb-20 md:pb-8">
+        <div class="container mx-auto px-4">
+
+            <!-- Flash messages -->
+            <div th:if="${message}" class="mb-6 rounded-lg border border-accent/50 bg-accent/10 p-4 text-sm text-accent">
+                <span th:text="${message}">Message</span>
+            </div>
+            <div th:if="${error}" class="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                <span th:text="${error}">Error</span>
+            </div>
+
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-medium">My Dashboard</h1>
+                <p class="text-muted-foreground mt-2">
+                    Welcome back, <span th:text="${user.fullName}">User</span>!
+                </p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-muted-foreground">Active Bookings</p>
+                            <p class="text-2xl font-semibold mt-1" th:text="${activeRentals}">0</p>
+                        </div>
+                        <i data-lucide="package" class="h-8 w-8 text-primary"></i>
+                    </div>
+                </div>
+
+                <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-muted-foreground">My Services</p>
+                            <p class="text-2xl font-semibold mt-1" th:text="${activeListings}">0</p>
+                        </div>
+                        <i data-lucide="calendar" class="h-8 w-8 text-primary"></i>
+                    </div>
+                </div>
+
+                <div class="bg-card rounded-xl border-2 border-border p-6 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-muted-foreground">Total Earned</p>
+                            <p class="text-2xl font-semibold mt-1">$<span th:text="${#numbers.formatDecimal(totalEarned, 0, 0)}">0</span></p>
+                        </div>
+                        <i data-lucide="dollar-sign" class="h-8 w-8 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Tabs -->
+            <div class="space-y-6">
+                <!-- Tabs List -->
+                <div class="inline-flex h-12 w-full max-w-md items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid grid-cols-2">
+                    <button onclick="switchTab('borrowing')" id="tab-borrowing" class="tab-trigger active inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-base font-medium transition-all focus-visible:outline-none">
+                        My Booked Sessions
+                    </button>
+                    <button onclick="switchTab('listings')" id="tab-listings" class="tab-trigger inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-base font-medium transition-all focus-visible:outline-none">
+                        My Services
+                    </button>
+                </div>
+
+                <!-- Borrowing Tab Content -->
+                <div id="content-borrowing" class="tab-content active space-y-4">
+                    
+                    <!-- Empty state -->
+                    <div th:if="${#lists.isEmpty(myRentals)}" class="bg-card rounded-xl border-2 border-border p-12 shadow-sm text-center">
+                        <i data-lucide="shopping-bag" class="h-12 w-12 text-muted-foreground mx-auto mb-4"></i>
+                        <h3 class="text-lg font-medium">No bookings yet</h3>
+                        <p class="text-muted-foreground mt-2">Browse coaching services and book your first session.</p>
+                        <a th:href="@{/}" class="mt-4 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-accent h-10 px-4 transition-colors">
+                            Browse Coaches
+                        </a>
+                    </div>
+
+                    <!-- Booked services -->
+                    <div th:each="rental : ${myRentals}" class="bg-card rounded-xl border-2 border-border p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="w-full sm:w-32 h-32 rounded-lg overflow-hidden bg-muted shrink-0">
+                                <img th:src="${rental.item.imageUrl}" th:alt="${rental.item.name}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-lg font-medium" th:text="${rental.item.name}">Service Name</h3>
+                                        <p class="text-sm text-muted-foreground">Coach: <span th:text="${rental.item.owner.fullName}">Coach</span></p>
+                                    </div>
+                                    <span th:class="${rental.status.name() == 'ACTIVE' ? 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-accent text-accent-foreground border-transparent' : rental.status.name() == 'CANCELLED' ? 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-destructive/10 text-destructive border-transparent' : 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground border-transparent'}"
+                                          th:text="${rental.status}">Status</span>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-muted-foreground">Start Date</p>
+                                        <p class="font-medium mt-1" th:text="${rental.startDate}">Date</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground">End Date</p>
+                                        <p class="font-medium mt-1" th:text="${rental.endDate}">Date</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground">Total Cost</p>
+                                        <p class="font-medium mt-1 text-primary">$<span th:text="${#numbers.formatDecimal(rental.totalCost, 0, 0)}">0</span></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a th:href="@{/items/{id}(id=${rental.item.id})}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-border bg-background hover:bg-muted h-9 px-3 gap-2">
+                                        <i data-lucide="eye" class="h-4 w-4"></i> View Details
+                                    </a>
+                                    <!-- Cancel button: only show for PENDING or ACTIVE bookings -->
+                                    <form th:if="${rental.status.name() != 'CANCELLED' and rental.status.name() != 'COMPLETED'}" 
+                                          th:action="@{/rentals/{id}/cancel(id=${rental.id})}" method="POST" class="inline"
+                                          onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                        <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-destructive bg-background text-destructive hover:bg-destructive/10 h-9 px-3 gap-2">
+                                            <i data-lucide="x-circle" class="h-4 w-4"></i> Cancel Booking
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listings Tab Content -->
+                <div id="content-listings" class="tab-content space-y-4">
+                    
+                    <!-- Empty state -->
+                    <div th:if="${#lists.isEmpty(myListings)}" class="bg-card rounded-xl border-2 border-border p-12 shadow-sm text-center">
+                        <i data-lucide="plus-circle" class="h-12 w-12 text-muted-foreground mx-auto mb-4"></i>
+                        <h3 class="text-lg font-medium">No services yet</h3>
+                        <p class="text-muted-foreground mt-2">Start offering coaching sessions.</p>
+                        <a th:href="@{/items/new}" class="mt-4 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-accent h-10 px-4 transition-colors">
+                            Create a Service
+                        </a>
+                    </div>
+
+                    <!-- Coaching services -->
+                    <div th:each="item : ${myListings}" class="bg-card rounded-xl border-2 border-border p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="w-full sm:w-32 h-32 rounded-lg overflow-hidden bg-muted shrink-0">
+                                <img th:src="${item.imageUrl}" th:alt="${item.name}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-lg font-medium" th:text="${item.name}">Service Name</h3>
+                                        <p class="text-sm text-muted-foreground">$<span th:text="${#numbers.formatDecimal(item.pricePerDay, 0, 0)}">0</span>/session</p>
+                                    </div>
+                                    <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-accent text-accent-foreground border-transparent">
+                                        Active
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-muted-foreground">Category</p>
+                                        <p class="font-medium mt-1" th:text="${item.category}">Category</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground">Location</p>
+                                        <p class="font-medium mt-1" th:text="${item.location}">Location</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a th:href="@{/items/{id}(id=${item.id})}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-border bg-background hover:bg-muted h-9 px-3 gap-2">
+                                        <i data-lucide="eye" class="h-4 w-4"></i> View
+                                    </a>
+                                    <form th:action="@{/items/{id}/delete(id=${item.id})}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                                        <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-destructive bg-background text-destructive hover:bg-destructive/10 h-9 px-3 gap-2">
+                                            <i data-lucide="trash-2" class="h-4 w-4"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+
+      function switchTab(tabId) {
+          document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+          document.querySelectorAll('.tab-trigger').forEach(el => el.classList.remove('active'));
+          
+          document.getElementById('content-' + tabId).classList.add('active');
+          document.getElementById('tab-' + tabId).classList.add('active');
+      }
+    </script>
+</body>
+</html>

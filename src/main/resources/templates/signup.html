@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Coachly</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-background: var(--background);
+            --color-foreground: var(--foreground);
+            --color-card: var(--card);
+            --color-card-foreground: var(--card-foreground);
+            --color-primary: var(--primary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-muted: var(--muted);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-accent: var(--accent);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-destructive: var(--destructive);
+            --color-border: var(--border);
+            --radius-lg: var(--radius);
+        }
+        @layer base {
+            :root {
+                --background: #09090B;
+                --foreground: #F8FAFC;
+                --card: #0F0F12;
+                --card-foreground: #F8FAFC;
+                --primary: #E11D48;
+                --primary-foreground: #FFFFFF;
+                --muted: #18181B;
+                --muted-foreground: #A1A1AA;
+                --accent: #F43F5E;
+                --accent-foreground: #FFFFFF;
+                --destructive: #EF4444;
+                --border: #3F3F46;
+                --radius: 0.75rem;
+            }
+            body {
+                background-color: var(--background);
+                color: var(--foreground);
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-primary/5 to-transparent">
+        <div class="w-full max-w-md space-y-6">
+            
+            <!-- Logo -->
+            <div class="text-center">
+                <a th:href="@{/}" class="inline-flex items-center justify-center gap-2 mb-2">
+                    <i data-lucide="dumbbell" class="h-10 w-10 text-primary"></i>
+                    <span class="text-3xl font-semibold">Coachly</span>
+                </a>
+                <p class="text-muted-foreground">Create your account</p>
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${error}" class="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                <span th:text="${error}">Error message</span>
+            </div>
+
+            <!-- Sign Up Card -->
+            <div class="bg-card rounded-xl border-2 border-border shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold tracking-tight text-xl">Sign Up</h3>
+                    <p class="text-sm text-muted-foreground">Join our community of coaches and clients</p>
+                </div>
+                
+                <div class="p-6 pt-0">
+                    <form th:action="@{/signup}" method="POST" class="space-y-4">
+                        
+                        <div class="space-y-2">
+                            <label for="fullName" class="text-sm font-medium leading-none">Full Name</label>
+                            <div class="relative">
+                                <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+                                <input id="fullName" name="fullName" type="text" placeholder="John Doe" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent pl-10 pr-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="email" class="text-sm font-medium leading-none">Email</label>
+                            <div class="relative">
+                                <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+                                <input id="email" name="email" type="email" placeholder="you@example.com" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent pl-10 pr-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="password" class="text-sm font-medium leading-none">Password</label>
+                            <div class="relative">
+                                <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+                                <input id="password" name="password" type="password" placeholder="Create a strong password" required minlength="8" class="flex h-12 w-full rounded-md border-2 border-border bg-transparent pl-10 pr-10 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                                    <i data-lucide="eye" id="eye-icon" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-muted-foreground">Must be at least 8 characters</p>
+                        </div>
+
+                        <button type="submit" class="w-full mt-4 h-12 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-accent transition-colors">
+                            Create Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sign In Link -->
+            <p class="text-center text-sm text-muted-foreground">
+                Already have an account? 
+                <a th:href="@{/login}" class="text-primary hover:underline font-medium">Sign in</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+
+      function togglePassword() {
+          const input = document.getElementById('password');
+          const eyeIcon = document.getElementById('eye-icon');
+          
+          if (input.type === 'password') {
+              input.type = 'text';
+              eyeIcon.setAttribute('data-lucide', 'eye-off');
+              lucide.createIcons();
+          } else {
+              input.type = 'password';
+              eyeIcon.setAttribute('data-lucide', 'eye');
+              lucide.createIcons();
+          }
+      }
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offer Coaching - Coachly</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-background: var(--background);
+            --color-foreground: var(--foreground);
+            --color-card: var(--card);
+            --color-card-foreground: var(--card-foreground);
+            --color-primary: var(--primary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-muted: var(--muted);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-accent: var(--accent);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-destructive: var(--destructive);
+            --color-border: var(--border);
+            --radius-lg: var(--radius);
+        }
+        @layer base {
+            :root {
+                --background: #09090B;
+                --foreground: #F8FAFC;
+                --card: #0F0F12;
+                --card-foreground: #F8FAFC;
+                --primary: #E11D48;
+                --primary-foreground: #FFFFFF;
+                --muted: #18181B;
+                --muted-foreground: #A1A1AA;
+                --accent: #F43F5E;
+                --accent-foreground: #FFFFFF;
+                --destructive: #EF4444;
+                --border: #3F3F46;
+                --radius: 0.75rem;
+            }
+            body {
+                background-color: var(--background);
+                color: var(--foreground);
+                font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Navigation Bar -->
+    <nav class="border-b bg-card">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <a th:href="@{/}" class="flex items-center gap-2 font-semibold text-xl">
+                <i data-lucide="dumbbell" class="h-6 w-6 text-primary"></i>
+                Coachly
+            </a>
+            <div class="flex items-center gap-4">
+                <a th:href="@{/items/new}" class="text-sm font-medium text-primary">Offer Coaching</a>
+                <a th:href="@{/dashboard}" class="text-sm font-medium hover:text-primary">Dashboard</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="text-sm font-medium hover:text-primary bg-transparent border-none cursor-pointer">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen py-8 pb-20 md:pb-8">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <!-- Header -->
+            <div class="mb-8 text-center">
+                <h1 class="text-3xl font-medium">Create Your Coaching Service</h1>
+                <p class="text-muted-foreground mt-2">
+                    Share your coaching expertise and book more clients
+                </p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="bg-card rounded-xl border-2 border-border shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight text-xl">Coaching Service Details</h3>
+                </div>
+                
+                <div class="p-6 pt-0 space-y-6">
+                    <form th:action="@{/items/new}" method="POST" class="space-y-4">
+                        
+                        <!-- Category -->
+                        <div class="space-y-2">
+                            <label for="category" class="text-sm font-medium leading-none">Category</label>
+                            <select id="category" name="category" required class="flex h-12 w-full items-center justify-between rounded-md border-2 border-border bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                                <option value="" disabled selected>Select a category</option>
+                                <option>Fitness</option>
+                                <option>Strength</option>
+                                <option>Yoga</option>
+                                <option>Boxing</option>
+                                <option>Nutrition</option>
+                                <option>Running</option>
+                                <option>Career</option>
+                                <option>Wellness</option>
+                            </select>
+                        </div>
+
+                        <!-- Service Name -->
+                        <div class="space-y-2">
+                            <label for="name" class="text-sm font-medium leading-none">Service Name</label>
+                            <input id="name" name="name" type="text" placeholder="e.g., Beginner Strength Coaching" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="space-y-2">
+                            <label for="description" class="text-sm font-medium leading-none">Description</label>
+                            <textarea id="description" name="description" rows="4" placeholder="Describe your coaching service, what clients will learn, and what is included..." class="flex w-full rounded-md border-2 border-border bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"></textarea>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label for="pricePerDay" class="text-sm font-medium leading-none">Session Rate ($)</label>
+                                <input id="pricePerDay" name="pricePerDay" type="number" step="0.01" min="1" placeholder="25" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="securityDeposit" class="text-sm font-medium leading-none">Booking Deposit ($)</label>
+                                <input id="securityDeposit" name="securityDeposit" type="number" step="0.01" min="1" placeholder="100" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="space-y-2">
+                            <label for="location" class="text-sm font-medium leading-none">Session Location</label>
+                            <input id="location" name="location" type="text" placeholder="Online, gym, or city" required class="flex h-12 w-full rounded-md border-2 border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        </div>
+
+                        <!-- Image URL -->
+                        <div class="space-y-2">
+                            <label for="imageUrl" class="text-sm font-medium leading-none">Image URL (optional)</label>
+                            <input id="imageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg" class="flex h-12 w-full rounded-md border-2 border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            <p class="text-xs text-muted-foreground">Paste a URL to a coaching image. Leave empty for a default image.</p>
+                        </div>
+
+                        <!-- Pricing Tips -->
+                        <div class="rounded-xl border border-primary/20 bg-primary/5 p-4 text-card-foreground shadow">
+                            <h4 class="text-sm font-medium mb-2">Pricing Tips</h4>
+                            <ul class="text-sm text-muted-foreground space-y-1">
+                                <li>- Research similar coaches in your category</li>
+                                <li>- Consider your experience and session length</li>
+                                <li>- Factor in preparation and follow-up time</li>
+                            </ul>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" class="w-full h-12 inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-accent transition-colors">
+                            <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i> Publish Service
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+</body>
+</html>
