@@ -42,8 +42,11 @@ http://localhost:8080
 
 text
 admin@coachly.com / admin123
+
 maya@example.com / password123
+
 daniel@example.com / password123
+
 elena@example.com / password123
 
 
