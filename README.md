@@ -40,7 +40,7 @@ http://localhost:8080
 
 ### Default Accounts
 
-text
+
 admin@coachly.com / admin123
 
 maya@example.com / password123
