@@ -59,5 +59,7 @@ elena@example.com / password123
 The PostgreSQL database uses:
 
 database: coachly
+
 username: coachly
+
 password: coachly123
