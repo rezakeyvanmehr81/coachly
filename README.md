@@ -34,7 +34,6 @@ docker-compose up --build
 
 Once the app starts, open:
 
-text
 http://localhost:8080
 
 
@@ -59,7 +58,6 @@ elena@example.com / password123
 
 The PostgreSQL database uses:
 
-text
 database: coachly
 username: coachly
 password: coachly123
